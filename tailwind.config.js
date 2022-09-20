@@ -28,7 +28,7 @@ module.exports = {
           backgroundColor: theme('colors.pink.50'),
           borderColor: theme('colors.pink.100'),
           color: theme('colors.pink.200'),
-          cursor: 'no-allowed',
+          cursor: 'not-allowed',
         },
         'button.secondary': {
           backgroundColor: theme('colors.pink.50'),

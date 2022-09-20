@@ -24,6 +24,21 @@ module.exports = {
         'button:active': {
           backgroundColor: theme('colors.pink.500'),
         },
+        'button:disabled': {
+          backgroundColor: theme('colors.pink.50'),
+          borderColor: theme('colors.pink.100'),
+          color: theme('colors.pink.200'),
+          cursor: 'no-allowed',
+        },
+        'button.secondary': {
+          backgroundColor: theme('colors.pink.50'),
+        },
+        'button.secondary:hover': {
+          backgroundColor: theme('colors.pink.100'),
+        },
+        'button.secondary:active': {
+          backgroundColor: theme('colors.pink.200'),
+        },
         input: {
           borderWidth: theme('borderWidth.2'),
           padding: inputPadding,

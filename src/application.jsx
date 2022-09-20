@@ -1,47 +1,86 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useReducer, useState } from 'react';
 import Errors from './components/errors';
 import FormInput from './components/form-input';
 import StateVisualization from './components/state-visualization';
 
+const defaultState = {
+  firstName: '',
+  lastName: '',
+  password: '',
+  confirmPassword: '',
+  submitted: false,
+  edited: false,
+};
+
+const reducer = (state, action) => {
+  if (action.type === 'UPDATE_FIELD') {
+    return {
+      ...state,
+      [action.payload.key]: action.payload.value,
+      edited: true,
+    };
+  }
+
+  if (action.type === 'SUBMIT_FORM') {
+    return {
+      ...state,
+      edited: false,
+      submitted: true,
+    };
+  }
+
+  if (action.type === 'CLEAR_FORM') {
+    return defaultState;
+  }
+
+  return state;
+};
+
+const checkForErrors = (state) => {
+  const errors = [];
+
+  if (!state.firstName) errors.push('You must provide a first name.');
+  if (!state.lastName) errors.push('You must provide a last name.');
+  if (!state.password) errors.push('You must provide a password.');
+  if (!state.confirmPassword)
+    errors.push('You must provide a password confirmation.');
+  if (
+    state.password &&
+    state.confirmPassword &&
+    state.password !== state.confirmPassword
+  ) {
+    errors.push('Password and confirmation do not match');
+  }
+
+  return errors;
+};
+
 export const Application = () => {
-  const [isValid, setIsValid] = useState(false);
-  const [firstName, setFirstName] = useState('');
-  const [lastName, setLastName] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [errors, setErrors] = useState([]);
-  const [submitted, setSubmitted] = useState(false);
+  const [state, dispatch] = useReducer(reducer, defaultState);
+  const { firstName, lastName, password, confirmPassword, submitted, edited } =
+    state;
 
-  useEffect(() => {
-    const errors = [];
+  const errors = checkForErrors(state);
+  const showErrors = submitted && (!edited || errors.length);
 
-    if (!firstName) errors.push('You must provide a first name.');
-    if (!lastName) errors.push('You must provide a last name.');
-    if (!password) errors.push('You must provide a password.');
-    if (!confirmPassword)
-      errors.push('You must provide a password confirmation.');
-    if (password && confirmPassword && password !== confirmPassword) {
-      errors.push('Password and confirmation do not match');
-    }
-
-    setErrors(errors);
-    setIsValid(!errors.length);
-  }, [firstName, lastName, password, confirmPassword, setErrors, setIsValid]);
+  const updateField = (event) => {
+    dispatch({
+      type: 'UPDATE_FIELD',
+      payload: {
+        key: event.target.name,
+        value: event.target.value,
+      },
+    });
+  };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    setSubmitted(true);
+    dispatch({ type: 'SUBMIT_FORM' });
   };
 
   const handleClear = (e) => {
     e.preventDefault();
-
-    setFirstName('');
-    setLastName('');
-    setPassword('');
-    setConfirmPassword('');
-    setSubmitted(false);
-    setErrors([]);
+    dispatch({ type: 'CLEAR_FORM' });
   };
 
   return (
@@ -50,21 +89,21 @@ export const Application = () => {
         <header className="p-4 bg-pink-200 border-b-4 border-pink-400">
           <h1 className="text-6xl font-semibold">Sign Up For a Cool Thing</h1>
         </header>
-        <Errors errors={errors} visible={submitted} />
+        <Errors errors={errors} visible={showErrors} />
         <form onSubmit={handleSubmit} className="flex flex-col gap-8">
           <FormInput
             label="First Name"
             id="firstName"
             name="firstName"
             value={firstName}
-            onChange={(e) => setFirstName(e.target.value)}
+            onChange={updateField}
           />
           <FormInput
             label="Last Name"
             id="lastName"
             name="lastName"
             value={lastName}
-            onChange={(e) => setLastName(e.target.value)}
+            onChange={updateField}
           />
           <FormInput
             label="Password"
@@ -72,7 +111,7 @@ export const Application = () => {
             name="password"
             type="password"
             value={password}
-            onChange={(e) => setPassword(e.target.value)}
+            onChange={updateField}
           />
           <FormInput
             label="Confirm Password"
@@ -80,19 +119,17 @@ export const Application = () => {
             name="confirmPassword"
             type="password"
             value={confirmPassword}
-            onChange={(e) => setConfirmPassword(e.target.value)}
+            onChange={updateField}
           />
           <div className="flex flex-col gap-2">
-            <button disabled={!isValid && submitted}>Submit</button>
+            <button disabled={showErrors}>Submit</button>
             <button onClick={handleClear} className="secondary">
               Clear
             </button>
           </div>
         </form>
       </section>
-      <StateVisualization
-        state={{ firstName, lastName, password, confirmPassword, isValid }}
-      />
+      <StateVisualization state={state} />
     </main>
   );
 };
